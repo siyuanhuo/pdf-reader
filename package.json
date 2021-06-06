@@ -4,6 +4,7 @@
   "description": "Extract information from pdf file and save into sql database",
   "main": "app.js",
   "dependencies": {
+    "mysql": "^2.18.1",
     "pdfjs-dist": "^2.7.570",
     "word-extractor": "^1.0.2"
   },

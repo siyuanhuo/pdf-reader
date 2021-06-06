@@ -1,18 +1,16 @@
-const pdfjs = require("pdfjs-dist/es5/build/pdf")
 const WordExtractor = require("word-extractor"); 
+const { closeDB } = require("./config/orm");
+
+const orm = require('./config/orm')
 
 const url = "./asset/resume.docx"
 
 const extractor = new WordExtractor();
 const extracted = extractor.extract(url);
 
-extracted.then(function(doc) { 
+extracted.then(async function(doc) { 
   const body = doc.getBody();
   // extract content from document
-  // console.log(body)
-  // console.log(typeof(body))
-
-
 
   function getParagraphs(text) {
     // take whole content => split into paragraphs => return list of paragraphs
@@ -20,11 +18,13 @@ extracted.then(function(doc) {
     return paragraphs
   }
 
-  function getInfo(paragraph) {
+  var name
+  async function getInfo(paragraph) {
     // take first paragraph => get name, phone number and email => store into database
     const sections = paragraph.split(/\||\n/)
-    let name = sections[0].trim()
+    name = sections[0].trim()
     let phone, email
+
     for (let i = 1; i < sections.length; i++) {
       let a = sections[i].trim().split(/ *: */)
       switch (a[0].toLowerCase()) {
@@ -35,27 +35,34 @@ extracted.then(function(doc) {
           email = a[1].trim()
       }
     }
-    console.log(`name:${name}, number:${phone}, email:${email}`)
+
     // store to database, code here:
+    orm.insertInfo([name, phone, email])
   }
 
-  function getSkills(paragraphs) {
+  async function getSkills(paragraphs) {
     // take list of paragraphs => locate skill section => gather skills => store into database
     let skills = []
     for(let i = 1; i < paragraphs.length; i++) {
-      let a = paragraphs[i].trim().split(/\n/)
-      if(a[0] === 'SKILLS') {
-        for (let j = 1; j < a.length; j++) {
-          let subSkill = a[i].replace(/.+: */, '').trim().split(',')
+      let lines = paragraphs[i].trim().split(/\n/)
+      if(lines[0] === 'SKILLS') {
+        for (let j = 1; j < lines.length; j++) {
+          let subSkill = lines[j].replace(/.+: */, '').trim().split(',')
           skills = skills.concat(subSkill)
         }
       }
     }
+    let list = []
     skills.map(function(skl) {
-      skl = skl.trim()
+      list.push(skl.trim())
     })
     // store to database, code here:
+    orm.insertAbility(name, list)
   }
 
   const paragraphs = getParagraphs(body)
+  await getInfo(paragraphs[0])
+  await getSkills(paragraphs)
+
+  // closeDB()
 });
