@@ -42,6 +42,10 @@ const orm = {
     )
   },
 
+  getCandidate() {},
+
+  getSkill() {},
+
   closeDB() {
     connection.end()
   }

@@ -1,13 +1,13 @@
 const WordExtractor = require("word-extractor"); 
-const { closeDB } = require("./config/orm");
-
 const orm = require('./config/orm')
+// const inquirer = require('inquirer')
 
 const url = "./asset/resume.docx"
 
 const extractor = new WordExtractor();
 const extracted = extractor.extract(url);
 
+// extract data from document => store data to database
 extracted.then(async function(doc) { 
   const body = doc.getBody();
   // extract content from document
@@ -66,3 +66,5 @@ extracted.then(async function(doc) {
 
   // closeDB()
 });
+
+// use inquirer to search database
